@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital Builders — Website
 
-## Getting Started
+The new Digital Builders site, rebuilt from the Framer site (digitalbuilders.ca) as a
+**Next.js 16 + React 19 + Tailwind v4** static app.
 
-First, run the development server:
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install      # first time only
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Build for production
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build    # outputs an optimized, fully static site
+npm run start    # serve the production build locally
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy
 
-## Learn More
+Every page is statically prerendered, so it deploys anywhere:
 
-To learn more about Next.js, take a look at the following resources:
+- **Vercel** (easiest): push to GitHub and import the repo — zero config.
+- **Netlify / Cloudflare Pages**: build command `npm run build`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Point the `digitalbuilders.ca` domain at the deployment when you're ready to go live.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Editing content
 
-## Deploy on Vercel
+Almost all copy lives in one file: **`src/lib/content.ts`** — company info, nav,
+services, pricing, FAQ, projects, and contact details. Change text there and it
+updates everywhere it's used.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/
+    layout.tsx        # fonts, metadata, Navbar + Footer wrapper
+    page.tsx          # Home (hero, about, services, process, work, pricing, VoiceAI, FAQ)
+    about/page.tsx
+    services/page.tsx
+    work/page.tsx
+    contact/page.tsx
+    globals.css       # brand theme tokens (navy + amber) and base styles
+  components/         # Navbar, Footer, UI primitives, icons, CTA, FAQ, contact form
+  lib/content.ts      # ← all site copy and data
+```
+
+## Notes / next steps
+
+- **Pricing** uses the updated numbers from `Digital_Builders_Pricing.pdf`
+  (Starter $1,495, Online Store from $2,950, Custom from $5,000, Care Plan $49/mo).
+- **Contact form** opens the visitor's email client (mailto) — no backend yet.
+  Swap in Formspree, Resend, or a serverless route in `src/components/contact-form.tsx`
+  when you want submissions delivered automatically.
+- **Portfolio** shows project name/type/year. Add images and individual case-study
+  pages (`app/work/[slug]/page.tsx`) when assets are ready.
+- The DirtLink founding offer was intentionally left off the public site.

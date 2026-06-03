@@ -1,65 +1,267 @@
-import Image from "next/image";
+import { Container, Section, SectionHeading, Eyebrow, Button, ArrowRight } from "@/components/ui";
+import { CtaSection } from "@/components/cta";
+import { Faq } from "@/components/faq";
+import { ProjectCard } from "@/components/project-card";
+import { icons } from "@/components/icons";
+import {
+  site,
+  stats,
+  features,
+  services,
+  process,
+  pricing,
+  carePlan,
+  voiceAI,
+  projects,
+} from "@/lib/content";
+
+const Check = icons.check;
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <>
+      {/* ---------------- Hero ---------------- */}
+      <section className="bg-aurora relative overflow-hidden pt-36 pb-20 sm:pt-44 sm:pb-28">
+        <Container>
+          <div className="mx-auto max-w-3xl text-center">
+            <Eyebrow>Calgary digital studio · est. {site.founded}</Eyebrow>
+            <h1 className="mt-6 font-display text-4xl font-semibold leading-[1.07] tracking-tight sm:text-6xl">
+              We build <span className="text-gradient">modern websites</span> that turn visitors
+              into customers.
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-fg-muted">
+              {site.tagline} We design platforms that feel intuitive, engaging, and built to
+              perform — for local businesses, online stores, and growing brands.
+            </p>
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button href={site.bookingUrl} external>
+                Book a Call
+                <ArrowRight />
+              </Button>
+              <Button href="/work" variant="secondary">
+                View our portfolio
+              </Button>
+            </div>
+          </div>
+
+          {/* Stats strip */}
+          <div className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:mt-20 lg:grid-cols-4">
+            {stats.map((s) => (
+              <div key={s.label} className="bg-navy px-6 py-8 text-center">
+                <div className="font-display text-2xl font-semibold text-fg sm:text-3xl">
+                  {s.value}
+                </div>
+                <div className="mt-1.5 text-sm text-fg-muted">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* ---------------- About ---------------- */}
+      <Section id="about">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div>
+            <SectionHeading
+              eyebrow="About us"
+              title="An experienced team with a passion for the modern web."
+              intro="Digital Builders is a forward-thinking creative studio built on passion, collaboration, and innovation. We turn bold ideas into impactful designs and digital experiences that help brands stand out, connect, and grow with confidence."
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <Button href="/about" variant="secondary" className="mt-8">
+              Know more
+              <ArrowRight />
+            </Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {features.slice(0, 4).map((f) => (
+              <div key={f.title} className="card card-hover p-6">
+                <h3 className="font-display text-lg font-semibold text-fg">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-fg-muted">{f.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+      </Section>
+
+      {/* ---------------- Services ---------------- */}
+      <Section id="services" className="border-y border-line bg-navy/40">
+        <SectionHeading
+          eyebrow="Our services"
+          title="Everything you need to launch and grow online."
+          intro="From a first website to a full e-commerce platform, we cover design, build, and the technology that ties it together."
+          align="center"
+        />
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((s) => {
+            const Icon = icons[s.icon];
+            return (
+              <div key={s.title} className="card card-hover p-7">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-ink/60 text-accent">
+                  {Icon && <Icon className="[&_svg]:h-6 [&_svg]:w-6" />}
+                </span>
+                <h3 className="mt-5 font-display text-lg font-semibold text-fg">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-fg-muted">{s.body}</p>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-10 text-center">
+          <Button href="/services" variant="secondary">
+            See all services
+            <ArrowRight />
+          </Button>
+        </div>
+      </Section>
+
+      {/* ---------------- Process ---------------- */}
+      <Section id="process">
+        <SectionHeading
+          eyebrow="Our process"
+          title="A clear path from first idea to launch."
+          intro="No guesswork and no surprises — just four focused steps that keep your project moving."
+          align="center"
+        />
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {process.map((p) => (
+            <div key={p.step} className="card card-hover relative p-7">
+              <span className="font-display text-4xl font-bold text-accent/30">{p.step}</span>
+              <h3 className="mt-3 font-display text-lg font-semibold text-fg">{p.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ---------------- Work preview ---------------- */}
+      <Section className="border-y border-line bg-navy/40">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <SectionHeading eyebrow="Selected work" title="A look at what we've built." />
+          <Button href="/work" variant="secondary">
+            View all work
+            <ArrowRight />
+          </Button>
+        </div>
+        <div className="mt-12 grid gap-5 sm:grid-cols-2">
+          {projects.map((p) => (
+            <ProjectCard key={p.name} project={p} />
+          ))}
+        </div>
+      </Section>
+
+      {/* ---------------- Pricing ---------------- */}
+      <Section id="pricing">
+        <SectionHeading
+          eyebrow="Pricing"
+          title="Straightforward pricing, no surprises."
+          intro="Pick the build that fits where you are now — and keep it running smoothly with our optional care plan. All figures in CAD."
+          align="center"
+        />
+        <div className="mt-14 grid gap-6 lg:grid-cols-3">
+          {pricing.map((tier) => (
+            <div
+              key={tier.name}
+              className={`card relative flex flex-col p-8 ${
+                tier.featured ? "border-accent/60 shadow-[0_24px_70px_-30px_rgba(29,78,216,0.5)]" : ""
+              }`}
+            >
+              {tier.featured && (
+                <span className="absolute -top-3 left-8 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-ink">
+                  Most popular
+                </span>
+              )}
+              <h3 className="font-display text-xl font-semibold text-fg">{tier.name}</h3>
+              <div className="mt-4 flex items-baseline gap-1.5">
+                <span className="font-display text-4xl font-bold text-fg">{tier.price}</span>
+                <span className="text-sm text-fg-subtle">{tier.cadence}</span>
+              </div>
+              <p className="mt-3 text-sm text-fg-muted">{tier.tagline}</p>
+              <ul className="mt-6 space-y-3">
+                {tier.features.map((f) => (
+                  <li key={f} className="flex items-start gap-3 text-sm text-fg-muted">
+                    <Check className="mt-0.5 text-accent [&_svg]:h-4 [&_svg]:w-4" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8 pt-2">
+                <Button
+                  href={site.bookingUrl}
+                  external
+                  variant={tier.featured ? "primary" : "secondary"}
+                  className="w-full"
+                >
+                  Get started
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Care plan */}
+        <div className="card mt-6 flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-3">
+              <h3 className="font-display text-xl font-semibold text-fg">{carePlan.name}</h3>
+              <span className="flex items-baseline gap-1">
+                <span className="font-display text-2xl font-bold text-accent">{carePlan.price}</span>
+                <span className="text-sm text-fg-subtle">{carePlan.cadence}</span>
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-fg-muted">{carePlan.tagline}</p>
+            <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+              {carePlan.features.map((f) => (
+                <li key={f} className="flex items-center gap-2 text-sm text-fg-muted">
+                  <Check className="text-accent [&_svg]:h-4 [&_svg]:w-4" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Button href="/contact" variant="secondary" className="shrink-0">
+            Add a Care Plan
+            <ArrowRight />
+          </Button>
+        </div>
+      </Section>
+
+      {/* ---------------- VoiceAI ---------------- */}
+      <Section id="voiceai" className="border-y border-line bg-navy/40">
+        <SectionHeading
+          eyebrow="VoiceAI"
+          title="Never miss a customer — even when you're off the clock."
+          intro="Add AI-powered voice and messaging to your business so every call and chat gets answered, qualified, and followed up."
+          align="center"
+        />
+        <div className="mt-14 grid gap-5 md:grid-cols-2">
+          {voiceAI.map((v, i) => {
+            const Icon = i === 0 ? icons.phoneCall : icons.chat;
+            return (
+              <div key={v.title} className="card card-hover p-8">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-ink/60 text-accent">
+                  <Icon className="[&_svg]:h-6 [&_svg]:w-6" />
+                </span>
+                <h3 className="mt-5 font-display text-lg font-semibold text-fg">{v.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-fg-muted">{v.body}</p>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* ---------------- FAQ ---------------- */}
+      <Section id="faq">
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Questions, answered."
+          intro="Curious about working with us? Here are answers that make our process clear and simple."
+          align="center"
+        />
+        <div className="mx-auto max-w-3xl">
+          <Faq />
+        </div>
+      </Section>
+
+      <CtaSection />
+    </>
   );
 }
