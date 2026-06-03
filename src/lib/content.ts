@@ -13,7 +13,7 @@ export const site = {
   inquiriesEmail: "contact@digitalbuilders.ca",
   bookingUrl: "https://cal.com/digital-builders-v7k9vc/quick-call",
   linkedin: "https://www.linkedin.com/company/110243692",
-  founded: 2018,
+  founded: 2024,
   contacts: [
     { name: "Jonathan", phone: "+1 403 771 1597", phoneHref: "tel:+14037711597" },
   ],
@@ -33,7 +33,7 @@ export const nav = [
 ];
 
 export const stats = [
-  { value: "Since 2018", label: "Building on the web" },
+  { value: "Since 2024", label: "Building on the web" },
   { value: "105+", label: "Projects delivered" },
   { value: "83%", label: "Client satisfaction rate" },
   { value: "17+", label: "Creative experts" },
