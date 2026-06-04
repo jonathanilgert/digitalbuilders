@@ -171,7 +171,7 @@ export default function Home() {
               )}
               <h3 className="font-display text-xl font-semibold text-fg">{tier.name}</h3>
               <div className="mt-4 flex items-baseline gap-1.5">
-                <span className="font-display text-4xl font-bold text-fg">{tier.price}</span>
+                <span className="font-display text-3xl font-bold text-fg">{tier.price}</span>
                 <span className="text-sm text-fg-subtle">{tier.cadence}</span>
               </div>
               <p className="mt-3 text-sm text-fg-muted">{tier.tagline}</p>

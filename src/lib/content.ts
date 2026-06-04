@@ -34,8 +34,8 @@ export const nav = [
 
 export const stats = [
   { value: "Since 2024", label: "Building on the web" },
-  { value: "105+", label: "Projects delivered" },
-  { value: "83%", label: "Client satisfaction rate" },
+  { value: "50+", label: "Projects delivered" },
+  { value: "98%", label: "Client satisfaction rate" },
   { value: "17+", label: "Creative experts" },
 ];
 
@@ -133,7 +133,7 @@ export const pricing = [
       "Launch & training session",
       "Built in ~2 weeks",
     ],
-    featured: false,
+    featured: true,
   },
   {
     name: "Online Store",
@@ -148,7 +148,7 @@ export const pricing = [
       "Seller onboarding",
       "Growth & marketing advice",
     ],
-    featured: true,
+    featured: false,
   },
   {
     name: "Custom / Scale",
