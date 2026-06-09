@@ -252,7 +252,7 @@ export const projects: Project[] = [
     type: "Marketplace · Web App",
     year: "2026",
     slug: "dirtlink",
-    cover: "/work/dirtlink/cover.png",
+    cover: "/work/dirtlink/cover-v2.png",
     summary:
       "A map-based marketplace that lets Calgary construction sites post and find earth material nearby — replacing text threads and spreadsheets with one regional map.",
     caseStudy: {
@@ -287,7 +287,7 @@ export const projects: Project[] = [
       ],
       quote: "Earth material shouldn't be the thing that holds your schedule hostage.",
       images: [
-        { src: "/work/dirtlink/cover.png", alt: "DirtLink landing — the nearest pile of dirt you need is probably 4 km away" },
+        { src: "/work/dirtlink/cover-v2.png", alt: "DirtLink landing — the nearest pile of dirt you need is probably 4 km away" },
         { src: "/work/dirtlink/app-map.png", alt: "DirtLink app — map of Calgary sites with material pins and filters" },
         { src: "/work/dirtlink/how-it-works.png", alt: "Four steps from pile to placement" },
         { src: "/work/dirtlink/audience.png", alt: "Every role along the dirt — who DirtLink is built for" },
