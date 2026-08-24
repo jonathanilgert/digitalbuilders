@@ -11,7 +11,6 @@ import {
   process,
   pricing,
   carePlan,
-  couponOffer,
   ownershipPromise,
   pricingNotes,
   voiceAI,
@@ -200,12 +199,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div className="card p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Coupon codes</p>
-            <h3 className="mt-3 font-display text-xl font-semibold text-fg">{couponOffer.prompt}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-fg-muted">{couponOffer.body}</p>
-          </div>
+        <div className="mt-6 grid gap-6">
           <div className="card p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">No lock-in</p>
             <h3 className="mt-3 font-display text-xl font-semibold text-fg">{ownershipPromise.title}</h3>

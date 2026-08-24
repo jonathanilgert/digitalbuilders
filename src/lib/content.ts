@@ -198,11 +198,6 @@ export const pricing = [
   },
 ];
 
-export const couponOffer = {
-  prompt: "Got a code? Enter it at checkout.",
-  body: "Outreach codes unlock fixed campaign pricing: One-Pager $349, Essential $599, and Professional $995. Care plans and domains are never discounted.",
-};
-
 export const ownershipPromise = {
   title: "Your domain is registered in your name.",
   body: "Ask for the transfer code any time, and we'll send it within one business day. Domains are $19/year, registered in your name, with renewal folded into the care plan from year two. No contracts, no lock-in, and if you ever leave we'll hand you a copy of your site. We'd rather earn the next month than trap you in it.",
@@ -245,7 +240,7 @@ export const voiceAI = [
 export const faqs = [
   {
     q: "How much does a website cost?",
-    a: "One-page sites are $599, Essential three-page sites are $999, Professional sites up to five pages are $1,495, online stores start from $2,950, and custom builds start from $5,000. Campaign codes can reduce build fees at checkout; care plans and domains are not discounted.",
+    a: "One-page sites are $599, Essential three-page sites are $999, Professional sites up to five pages are $1,495, online stores start from $2,950, and custom builds start from $5,000. Care plans and domains are billed separately.",
   },
   {
     q: "How long does it take to complete a website?",

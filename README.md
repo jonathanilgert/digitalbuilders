@@ -53,7 +53,6 @@ src/
 - **Pricing** uses the dated `DigitalBuilders-Pricing-Plan.md` from August 2026
   (One-Pager $599, Essential $999, Professional $1,495, Online Store from $2,950,
   Custom from $5,000, Care Plan $49/mo or $490/year, Domain $19/year).
-  Campaign codes are fixed targets: One-Pager $349, Essential $599, Professional $995.
 - **Contact form** opens the visitor's email client (mailto) — no backend yet.
   Swap in Formspree, Resend, or a serverless route in `src/components/contact-form.tsx`
   when you want submissions delivered automatically.
