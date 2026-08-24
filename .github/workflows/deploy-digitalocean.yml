@@ -41,6 +41,7 @@ jobs:
           test -f out/index.html
           test -f out/about/index.html
           test -f out/services/index.html
+          test -f out/intake/index.html
           test -f out/work/index.html
           test -f out/contact/index.html
 
@@ -74,7 +75,7 @@ jobs:
       - name: Smoke test live site
         run: |
           set -euo pipefail
-          for path in / /about/ /services/ /work/ /contact/; do
+          for path in / /about/ /services/ /intake/ /work/ /contact/; do
             curl --fail --silent --show-error --location --max-time 20 "https://digitalbuilders.ca${path}" > /tmp/db-page.html
             grep -qi "Digital Builders" /tmp/db-page.html
           done

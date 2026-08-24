@@ -36,8 +36,8 @@ export default function Home() {
               perform — for local businesses, online stores, and growing brands.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button href={site.bookingUrl} external>
-                Book a Call
+              <Button href={site.bookingUrl}>
+                Start Intake
                 <ArrowRight />
               </Button>
               <Button href="/work" variant="secondary">
@@ -155,7 +155,7 @@ export default function Home() {
         <SectionHeading
           eyebrow="Pricing"
           title="Websites for trades, built properly and priced honestly."
-          intro="You don't need to know anything about building websites. Answer some questions, send a few photos — we do the rest. Live in about two weeks. All figures in CAD."
+          intro="You don't need to know anything about building websites. Answer some questions, send a few photos — we do the rest. One-page sites can be live in about one week, with larger builds typically live in about two weeks. All figures in CAD."
           align="center"
         />
         <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
@@ -188,7 +188,6 @@ export default function Home() {
               <div className="mt-auto pt-8">
                 <Button
                   href={site.bookingUrl}
-                  external
                   variant={tier.featured ? "primary" : "secondary"}
                   className="w-full"
                 >

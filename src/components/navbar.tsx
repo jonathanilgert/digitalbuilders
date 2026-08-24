@@ -50,11 +50,9 @@ export function Navbar() {
         <div className="hidden md:block">
           <a
             href={site.bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-accent-soft hover:shadow-[0_12px_40px_-12px_rgba(29,78,216,0.7)]"
           >
-            Book a Call
+            Start Intake
             <ArrowRight />
           </a>
         </div>
@@ -105,12 +103,10 @@ export function Navbar() {
           ))}
           <a
             href={site.bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
             onClick={() => setOpen(false)}
             className="mt-2 flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-ink"
           >
-            Book a Call
+            Start Intake
             <ArrowRight />
           </a>
         </div>

@@ -53,8 +53,9 @@ src/
 - **Pricing** uses the dated `DigitalBuilders-Pricing-Plan.md` from August 2026
   (One-Pager $599, Essential $999, Professional $1,495, Online Store from $2,950,
   Custom from $5,000, Care Plan $49/mo or $490/year, Domain $19/year).
-- **Contact form** opens the visitor's email client (mailto) — no backend yet.
+- **Intake and contact forms** open the visitor's email client (mailto) — no backend yet.
   Swap in Formspree, Resend, or a serverless route in `src/components/contact-form.tsx`
+  and `src/components/intake-form.tsx`
   when you want submissions delivered automatically.
 - **Client portal** is not implemented in this static site yet. The August 2026 portal
   docs require a server-capable stack, Stripe, Postgres, R2/S3 uploads, magic links,

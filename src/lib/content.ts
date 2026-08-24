@@ -11,7 +11,7 @@ export const site = {
   url: "https://digitalbuilders.ca",
   email: "hello@digitalbuilders.ca",
   inquiriesEmail: "contact@digitalbuilders.ca",
-  bookingUrl: "https://cal.com/digital-builders-v7k9vc/quick-call",
+  bookingUrl: "/intake",
   linkedin: "https://www.linkedin.com/company/110243692",
   founded: 2024,
   contacts: [
@@ -131,7 +131,7 @@ export const pricing = [
       "Click-to-call",
       "Mobile-ready",
       "Basic SEO setup",
-      "Built in about two weeks",
+      "Built in about one week",
     ],
     featured: false,
   },
@@ -244,7 +244,7 @@ export const faqs = [
   },
   {
     q: "How long does it take to complete a website?",
-    a: "Most One-Pager, Essential, and Professional builds are live in about two weeks once we have your guided answers and photos. Larger stores and custom builds take longer — we'll give you a realistic timeline up front.",
+    a: "One-Pager builds can be live in about one week once we have your guided answers and photos. Essential and Professional builds are typically live in about two weeks. Larger stores and custom builds take longer — we'll give you a realistic timeline up front.",
   },
   {
     q: "Do I need to provide all the content myself?",
