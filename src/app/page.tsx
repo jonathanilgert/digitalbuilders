@@ -11,6 +11,9 @@ import {
   process,
   pricing,
   carePlan,
+  couponOffer,
+  ownershipPromise,
+  pricingNotes,
   voiceAI,
   projects,
 } from "@/lib/content";
@@ -152,11 +155,11 @@ export default function Home() {
       <Section id="pricing">
         <SectionHeading
           eyebrow="Pricing"
-          title="Straightforward pricing, no surprises."
-          intro="Pick the build that fits where you are now — and keep it running smoothly with our optional care plan. All figures in CAD."
+          title="Websites for trades, built properly and priced honestly."
+          intro="You don't need to know anything about building websites. Answer some questions, send a few photos — we do the rest. Live in about two weeks. All figures in CAD."
           align="center"
         />
-        <div className="mt-14 grid gap-6 lg:grid-cols-3">
+        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
           {pricing.map((tier) => (
             <div
               key={tier.name}
@@ -197,14 +200,42 @@ export default function Home() {
           ))}
         </div>
 
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="card p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Coupon codes</p>
+            <h3 className="mt-3 font-display text-xl font-semibold text-fg">{couponOffer.prompt}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-fg-muted">{couponOffer.body}</p>
+          </div>
+          <div className="card p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">No lock-in</p>
+            <h3 className="mt-3 font-display text-xl font-semibold text-fg">{ownershipPromise.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-fg-muted">{ownershipPromise.body}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-line bg-surface/40 p-6">
+          <p className="text-sm font-semibold text-fg">Included and scope limits</p>
+          <ul className="mt-4 grid gap-3 lg:grid-cols-3">
+            {pricingNotes.map((note) => (
+              <li key={note} className="flex items-start gap-3 text-sm leading-relaxed text-fg-muted">
+                <Check className="mt-0.5 text-accent [&_svg]:h-4 [&_svg]:w-4" />
+                {note}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {/* Care plan */}
         <div className="card mt-6 flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
           <div className="max-w-xl">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <h3 className="font-display text-xl font-semibold text-fg">{carePlan.name}</h3>
               <span className="flex items-baseline gap-1">
                 <span className="font-display text-2xl font-bold text-accent">{carePlan.price}</span>
                 <span className="text-sm text-fg-subtle">{carePlan.cadence}</span>
+              </span>
+              <span className="rounded-full border border-line px-3 py-1 text-xs font-semibold text-fg-muted">
+                {carePlan.annualPrice}
               </span>
             </div>
             <p className="mt-2 text-sm text-fg-muted">{carePlan.tagline}</p>

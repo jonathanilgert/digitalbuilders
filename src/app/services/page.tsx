@@ -24,7 +24,7 @@ export default function ServicesPage() {
             <span className="text-gradient">innovative, high-quality results</span>.
           </>
         }
-        intro="Crafted to inspire growth, strengthen identity, and help your brand achieve lasting success. Most business websites start from $1,495 and online stores from $2,950 — and we always provide a clear estimate before any work begins."
+        intro="One-page builds start at $599, Essential three-page sites are $999, Professional sites up to five pages are $1,495, online stores start from $2,950, and custom builds start from $5,000 — with clear scope before any work begins."
       />
 
       <Section className="pt-4">
@@ -92,7 +92,7 @@ export default function ServicesPage() {
             <Check className="text-accent [&_svg]:h-4 [&_svg]:w-4" /> Speed &amp; SEO optimization
           </span>
           <span className="flex items-center gap-2">
-            <Check className="text-accent [&_svg]:h-4 [&_svg]:w-4" /> Launch &amp; training session
+            <Check className="text-accent [&_svg]:h-4 [&_svg]:w-4" /> Quote form and click-to-call
           </span>
         </div>
       </Section>

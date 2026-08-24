@@ -120,33 +120,64 @@ export const process = [
 
 export const pricing = [
   {
-    name: "Starter Site",
-    price: "$1,495",
+    name: "One-Pager",
+    price: "$599",
     cadence: "one-time",
-    tagline: "For local businesses, studios, cafés & wellness practices.",
+    tagline:
+      "Everything a customer needs on one clean scrolling page: who you are, what you do, and how to call you.",
     features: [
-      "1–5 page website",
-      "Modern, responsive UI/UX design",
-      "Contact / booking form",
+      "1 page",
+      "Quote form",
+      "Click-to-call",
+      "Mobile-ready",
       "Basic SEO setup",
-      "1 round of revisions",
-      "Launch & training session",
-      "Built in ~2 weeks",
+      "Built in about two weeks",
+    ],
+    featured: false,
+  },
+  {
+    name: "Essential",
+    price: "$999",
+    cadence: "one-time",
+    tagline:
+      "Three pages — Home, Services, Contact — with room to explain what you do and the areas you serve.",
+    features: [
+      "3 pages",
+      "Everything in One-Pager",
+      "Service pages",
+      "Photo gallery",
+      "One round of revisions",
+      "Launch included",
     ],
     featured: true,
+  },
+  {
+    name: "Professional",
+    price: "$1,495",
+    cadence: "one-time",
+    tagline:
+      "Up to five pages for businesses with more to say: multiple services, a portfolio, an about page, or financing details.",
+    features: [
+      "Up to 5 pages",
+      "Everything in Essential",
+      "Expanded SEO setup",
+      "Portfolio or about page",
+      "One round of revisions",
+      "Launch included",
+    ],
+    featured: false,
   },
   {
     name: "Online Store",
     price: "from $2,950",
     cadence: "one-time",
-    tagline: "For selling products and taking bookings online.",
+    tagline: "For e-commerce builds that sell products, accept payments, or support online bookings.",
     features: [
-      "Everything in Starter",
-      "Product pages & collections",
+      "Product pages and collections",
       "Stripe or Shopify checkout",
-      "Order tracking system",
-      "Seller onboarding",
-      "Growth & marketing advice",
+      "Order or booking flow",
+      "Mobile-ready storefront",
+      "Launch included",
     ],
     featured: false,
   },
@@ -154,31 +185,49 @@ export const pricing = [
     name: "Custom / Scale",
     price: "from $5,000",
     cadence: "per project",
-    tagline: "For scaling businesses that need more.",
+    tagline: "For custom layouts, portals, dashboards, automations, or larger product builds.",
     features: [
       "Discovery call + strategy session",
-      "Custom UX/UI & full branding",
-      "User journey planning & research",
-      "Automations & custom features",
+      "Custom UX/UI and full branding",
+      "User journey planning and research",
+      "Automations and custom features",
       "Booking / CRM / portal / dashboard",
-      "SEO structure & content strategy",
-      "2 rounds of revisions",
+      "SEO structure and content strategy",
     ],
     featured: false,
   },
+];
+
+export const couponOffer = {
+  prompt: "Got a code? Enter it at checkout.",
+  body: "Outreach codes unlock fixed campaign pricing: One-Pager $349, Essential $599, and Professional $995. Care plans and domains are never discounted.",
+};
+
+export const ownershipPromise = {
+  title: "Your domain is registered in your name.",
+  body: "Ask for the transfer code any time, and we'll send it within one business day. Domains are $19/year, registered in your name, with renewal folded into the care plan from year two. No contracts, no lock-in, and if you ever leave we'll hand you a copy of your site. We'd rather earn the next month than trap you in it.",
+};
+
+export const pricingNotes = [
+  "Every build includes mobile-responsive design, one of five templates, a contact or quote form, click-to-call, basic SEO setup, Google Business Profile link, SSL, and launch.",
+  "One round of revisions is included. Further changes and out-of-scope work are quoted separately at $110/hour.",
+  "Template choice is the design decision. We write the copy from your guided answers, and photos can be yours, curated stock, or generated imagery.",
 ];
 
 export const carePlan = {
   name: "Care Plan",
   price: "$49",
   cadence: "/month",
-  tagline: "Keep your site fast, secure, and up to date — month-to-month, cancel anytime.",
+  annualPrice: "$490/year",
+  tagline:
+    "Hosting, SSL, daily backups, security updates, uptime monitoring, and small content changes whenever you need them. Month-to-month. No contract. Cancel any time.",
   features: [
-    "Hosting, SSL & security",
-    "Automated backups",
-    "Software updates",
+    "Hosting, SSL and daily backups",
+    "Security updates",
     "Uptime monitoring",
     "Small content edits (~30 min/mo)",
+    "Monthly health check",
+    "$490/year option — two months free",
   ],
 };
 
@@ -196,11 +245,11 @@ export const voiceAI = [
 export const faqs = [
   {
     q: "How much does a website cost?",
-    a: "It depends on the size and complexity of the project, but most business websites start from $1,495 and online stores from $2,950. We always provide a clear estimate before any work begins.",
+    a: "One-page sites are $599, Essential three-page sites are $999, Professional sites up to five pages are $1,495, online stores start from $2,950, and custom builds start from $5,000. Campaign codes can reduce build fees at checkout; care plans and domains are not discounted.",
   },
   {
     q: "How long does it take to complete a website?",
-    a: "A Starter site is typically live in about two weeks. Larger stores and custom builds take longer — we'll give you a realistic timeline up front.",
+    a: "Most One-Pager, Essential, and Professional builds are live in about two weeks once we have your guided answers and photos. Larger stores and custom builds take longer — we'll give you a realistic timeline up front.",
   },
   {
     q: "Do I need to provide all the content myself?",
@@ -208,7 +257,7 @@ export const faqs = [
   },
   {
     q: "Can I edit the website after it's launched?",
-    a: "Yes. We build on platforms that are easy to manage, and your launch includes a training session so you can confidently make updates yourself.",
+    a: "Yes. We include one revision round before launch. After launch, small content edits are covered by the Care Plan; larger changes are quoted separately.",
   },
   {
     q: "Will my website be optimized for mobile and speed?",
@@ -216,7 +265,7 @@ export const faqs = [
   },
   {
     q: "Do you offer support after launch?",
-    a: "Yes. Our $49/month Care Plan covers hosting, security, backups, updates, and small content edits — month-to-month, cancel anytime.",
+    a: "Yes. Our $49/month Care Plan — or $490/year, two months free — covers hosting, SSL, daily backups, security updates, uptime monitoring, small content edits, and a monthly health check. It is month-to-month with no contract.",
   },
 ];
 
