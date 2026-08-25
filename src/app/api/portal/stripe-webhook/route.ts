@@ -15,8 +15,9 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
   try { event = s.webhooks.constructEvent(raw, sig || "", secret); }
   catch (err) { return NextResponse.json({ error: `Webhook signature failed: ${err instanceof Error ? err.message : "unknown"}` }, { status: 400 }); }
-  if (event.type === "checkout.session.completed") {
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     const session = event.data.object as Stripe.Checkout.Session;
+    if (session.payment_status === "unpaid") return NextResponse.json({ received: true, deferred: true });
     const m = session.metadata || {};
     const client = await createPaidClient({
       source: (m.source || "direct") as Source,
