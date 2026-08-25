@@ -99,8 +99,8 @@ jobs:
           Environment=PORT=8795
           Environment=NEXT_PUBLIC_SITE_URL=https://digitalbuilders.ca
           Environment=PORTAL_DATA_DIR=/var/www/digitalbuilders.ca/portal-data
-          Environment="PORTAL_EMAIL_FROM=Digital Builders <contact@digitalbuilders.ca>"
-          Environment="PORTAL_NOTIFY_EMAIL=contact@digitalbuilders.ca"
+          Environment=PORTAL_EMAIL_FROM=contact@digitalbuilders.ca
+          Environment=PORTAL_NOTIFY_EMAIL=contact@digitalbuilders.ca
           Environment="STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}"
           Environment="STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}"
           Environment="RESEND_API_KEY=${RESEND_API_KEY}"
