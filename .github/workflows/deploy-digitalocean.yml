@@ -116,12 +116,12 @@ jobs:
             systemctl daemon-reload
             systemctl enable --now digitalbuilders-web.service
             systemctl restart digitalbuilders-web.service
-            for i in $(seq 1 30); do
+            for i in \$(seq 1 30); do
               if curl --fail --silent --show-error --max-time 2 http://127.0.0.1:8795/portal/start/ >/dev/null; then
                 break
               fi
               sleep 1
-              if [ "$i" = "30" ]; then
+              if [ "\$i" = "30" ]; then
                 systemctl status digitalbuilders-web.service --no-pager || true
                 journalctl -u digitalbuilders-web.service -n 120 --no-pager || true
                 exit 1
