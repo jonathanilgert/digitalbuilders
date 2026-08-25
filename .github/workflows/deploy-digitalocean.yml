@@ -15,7 +15,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -33,17 +33,20 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Build static export
+      - name: Build server app
+        env:
+          NEXT_PUBLIC_SITE_URL: https://digitalbuilders.ca
         run: npm run build
 
-      - name: Verify export artifact
+      - name: Verify server artifact
         run: |
-          test -f out/index.html
-          test -f out/about/index.html
-          test -f out/services/index.html
-          test -f out/intake/index.html
-          test -f out/work/index.html
-          test -f out/contact/index.html
+          test -f .next/standalone/server.js
+          test -d .next/static
+          test -d public
+          mkdir -p .next/standalone/.next
+          cp -R .next/static .next/standalone/.next/static
+          cp -R public .next/standalone/public
+          tar -C .next/standalone -czf /tmp/digitalbuilders-next.tgz .
 
       - name: Configure SSH
         env:
@@ -58,24 +61,118 @@ jobs:
           chmod 600 ~/.ssh/digitalbuilders_deploy
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
-      - name: Upload release and switch current symlink
+      - name: Upload server release and restart app
         env:
           DEPLOY_HOST: ${{ secrets.DB_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DB_DEPLOY_USER }}
+          STRIPE_SECRET_KEY: ${{ secrets.DB_STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.DB_STRIPE_WEBHOOK_SECRET }}
+          RESEND_API_KEY: ${{ secrets.DB_RESEND_API_KEY }}
+          PORTAL_ADMIN_TOKEN: ${{ secrets.DB_PORTAL_ADMIN_TOKEN }}
+          PORTAL_CRON_TOKEN: ${{ secrets.DB_PORTAL_CRON_TOKEN }}
         run: |
           set -euo pipefail
           release="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_SHA::7}"
           remote_root="/var/www/digitalbuilders.ca"
           ssh_cmd="ssh -i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes ${DEPLOY_USER}@${DEPLOY_HOST}"
-          tar -C out -czf /tmp/digitalbuilders-site.tgz .
-          $ssh_cmd "mkdir -p ${remote_root}/releases/${release}"
-          scp -i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes /tmp/digitalbuilders-site.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/digitalbuilders-site.tgz"
-          $ssh_cmd "tar -xzf /tmp/digitalbuilders-site.tgz -C ${remote_root}/releases/${release} && rm /tmp/digitalbuilders-site.tgz && test -f ${remote_root}/releases/${release}/index.html && chown -R www-data:www-data ${remote_root}/releases/${release} && ln -sfn ${remote_root}/releases/${release} ${remote_root}/current.new && mv -Tf ${remote_root}/current.new ${remote_root}/current && nginx -t && systemctl reload nginx && readlink -f ${remote_root}/current"
+          scp -i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes /tmp/digitalbuilders-next.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/digitalbuilders-next.tgz"
+          $ssh_cmd "set -euo pipefail
+            command -v node >/dev/null
+            mkdir -p ${remote_root}/releases/${release} ${remote_root}/portal-data
+            tar -xzf /tmp/digitalbuilders-next.tgz -C ${remote_root}/releases/${release}
+            rm /tmp/digitalbuilders-next.tgz
+            chown -R www-data:www-data ${remote_root}/releases/${release} ${remote_root}/portal-data
+            ln -sfn ${remote_root}/releases/${release} ${remote_root}/current-next.new
+            mv -Tf ${remote_root}/current-next.new ${remote_root}/current-next
+            cat > /etc/systemd/system/digitalbuilders-web.service <<'UNIT'
+          [Unit]
+          Description=Digital Builders Next.js website and portal
+          After=network.target
 
-      - name: Smoke test live site
+          [Service]
+          Type=simple
+          User=www-data
+          Group=www-data
+          WorkingDirectory=/var/www/digitalbuilders.ca/current-next
+          Environment=NODE_ENV=production
+          Environment=HOSTNAME=127.0.0.1
+          Environment=PORT=8795
+          Environment=NEXT_PUBLIC_SITE_URL=https://digitalbuilders.ca
+          Environment=PORTAL_DATA_DIR=/var/www/digitalbuilders.ca/portal-data
+          Environment="PORTAL_EMAIL_FROM=Digital Builders <contact@digitalbuilders.ca>"
+          Environment="PORTAL_NOTIFY_EMAIL=contact@digitalbuilders.ca"
+          Environment="STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}"
+          Environment="STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}"
+          Environment="RESEND_API_KEY=${RESEND_API_KEY}"
+          Environment="PORTAL_ADMIN_TOKEN=${PORTAL_ADMIN_TOKEN}"
+          Environment="PORTAL_CRON_TOKEN=${PORTAL_CRON_TOKEN}"
+          ExecStart=/usr/bin/node /var/www/digitalbuilders.ca/current-next/server.js
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+          UNIT
+            systemctl daemon-reload
+            systemctl enable --now digitalbuilders-web.service
+            systemctl restart digitalbuilders-web.service
+            systemctl is-active --quiet digitalbuilders-web.service
+            curl --fail --silent --show-error --max-time 20 http://127.0.0.1:8795/portal/start/ >/dev/null
+            cat > /etc/nginx/snippets/digitalbuilders-portal-proxy.conf <<'NGINX'
+          location ^~ /portal/ {
+            proxy_pass http://127.0.0.1:8795;
+            proxy_http_version 1.1;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+          }
+          location = /portal { return 301 /portal/; }
+          location ^~ /admin/ {
+            proxy_pass http://127.0.0.1:8795;
+            proxy_http_version 1.1;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+          }
+          location = /admin { return 301 /admin/; }
+          location ^~ /api/portal/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /api/admin/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /api/domain/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location = / {
+            proxy_pass http://127.0.0.1:8795;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+          }
+          location ^~ /_next/ {
+            proxy_pass http://127.0.0.1:8795;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+          }
+          location ^~ /about/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /services/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /work/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /contact/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /intake/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /preview/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          NGINX
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('/etc/nginx/sites-available/digitalbuilders.ca')
+          text = p.read_text()
+          include = 'include /etc/nginx/snippets/digitalbuilders-portal-proxy.conf;'
+          if include not in text:
+              p.write_text(text.replace('server_name digitalbuilders.ca www.digitalbuilders.ca;', 'server_name digitalbuilders.ca www.digitalbuilders.ca;\n    ' + include))
+          PY
+            nginx -t
+            systemctl reload nginx
+            readlink -f ${remote_root}/current-next"
+
+      - name: Smoke test live site and portal
         run: |
           set -euo pipefail
-          for path in / /about/ /services/ /intake/ /work/ /contact/; do
+          for path in / /about/ /services/ /work/ /contact/ /portal/start/ /portal/; do
             curl --fail --silent --show-error --location --max-time 20 "https://digitalbuilders.ca${path}" > /tmp/db-page.html
             grep -qi "Digital Builders" /tmp/db-page.html
           done

@@ -11,7 +11,7 @@ export const site = {
   url: "https://digitalbuilders.ca",
   email: "hello@digitalbuilders.ca",
   inquiriesEmail: "contact@digitalbuilders.ca",
-  bookingUrl: "/intake",
+  bookingUrl: "/portal/start",
   linkedin: "https://www.linkedin.com/company/110243692",
   founded: 2024,
   contacts: [
