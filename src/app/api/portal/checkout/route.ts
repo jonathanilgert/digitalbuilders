@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       contact_name: String(form.get("contact_name") || ""),
       phone: String(form.get("phone") || ""),
     },
-    line_items: [{ price_data: { currency: "cad", unit_amount: resolved.amount, product_data: { name: `Digital Builders ${plans[plan].name}` } }, quantity: 1 }],
+    line_items: [{ price_data: { currency: "cad", unit_amount: resolved.amount, product_data: { name: `Digital Builders ${plans[plan].name}`, tax_code: "txcd_10000000" } }, quantity: 1 }],
   });
   return NextResponse.redirect(session.url!, 303);
 }
