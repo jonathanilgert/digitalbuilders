@@ -44,8 +44,11 @@ jobs:
           test -d .next/static
           test -d public
           mkdir -p .next/standalone/.next
+          rm -rf .next/standalone/.next/static .next/standalone/public
           cp -R .next/static .next/standalone/.next/static
-          cp -R public .next/standalone/public
+          mkdir -p .next/standalone/public
+          cp -R public/. .next/standalone/public/
+          test -f .next/standalone/public/work/penned/cover.png
           tar -C .next/standalone -czf /tmp/digitalbuilders-next.tgz .
 
       - name: Configure SSH
