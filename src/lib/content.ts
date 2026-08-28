@@ -15,7 +15,7 @@ export const site = {
   linkedin: "https://www.linkedin.com/company/110243692",
   founded: 2024,
   contacts: [
-    { name: "Jonathan", phone: "+1 403 771 1597", phoneHref: "tel:+14037711597" },
+    { name: "Digital Builders", phone: "825-949-1010", phoneHref: "tel:+18259491010" },
   ],
   address: {
     line: "803 21 Ave SE",

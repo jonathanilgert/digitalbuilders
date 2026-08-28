@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { nav, site } from "@/lib/content";
 import { Logo } from "@/components/logo";
 import { ArrowRight } from "@/components/ui";
 
 export function Navbar() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const isPortalArea = pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/preview");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -35,7 +38,7 @@ export function Navbar() {
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
         <Logo />
 
-        <nav className="hidden items-center gap-1 md:flex">
+        {!isPortalArea && <nav className="hidden items-center gap-1 md:flex">
           {nav.map((item) => (
             <Link
               key={item.href}
@@ -45,9 +48,9 @@ export function Navbar() {
               {item.label}
             </Link>
           ))}
-        </nav>
+        </nav>}
 
-        <div className="hidden md:block">
+        {!isPortalArea && <div className="hidden md:block">
           <a
             href={site.bookingUrl}
             className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-accent-soft hover:shadow-[0_12px_40px_-12px_rgba(29,78,216,0.7)]"
@@ -55,9 +58,9 @@ export function Navbar() {
             Start Intake
             <ArrowRight />
           </a>
-        </div>
+        </div>}
 
-        <button
+        {!isPortalArea && <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg md:hidden"
@@ -81,11 +84,11 @@ export function Navbar() {
               }`}
             />
           </span>
-        </button>
+        </button>}
       </div>
 
       {/* Mobile menu */}
-      <div
+      {!isPortalArea && <div
         className={`md:hidden overflow-hidden border-t border-line bg-ink/95 backdrop-blur-lg transition-[max-height] duration-300 ${
           open ? "max-h-96" : "max-h-0"
         }`}
@@ -110,7 +113,7 @@ export function Navbar() {
             <ArrowRight />
           </a>
         </div>
-      </div>
+      </div>}
     </header>
   );
 }
