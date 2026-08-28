@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "@/components/ui";
+import type { Asset } from "@/lib/portal/types";
 
 const cls = "w-full rounded-xl border border-line bg-ink/60 px-4 py-3 text-sm text-fg placeholder:text-fg-subtle";
 const label = "mb-1.5 block text-sm font-medium text-fg-muted";
 
-type Props = { number: number; initial: Record<string, unknown>; state: string };
+type Props = { number: number; initial: Record<string, unknown>; state: string; assets?: Asset[] };
 type TemplateOption = {
   id: string;
   name: string;
@@ -67,6 +68,11 @@ const templates: TemplateOption[] = [
 
 const categories = ["work", "team", "equipment", "logo", "other"];
 function str(data: Record<string, unknown>, key: string) { return String(data[key] || ""); }
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
 
 function MiniTemplate({ template, selected }: { template: TemplateOption; selected: boolean }) {
   const dark = template.layout === "bold" || template.layout === "response";
@@ -133,10 +139,13 @@ function MiniTemplate({ template, selected }: { template: TemplateOption; select
   );
 }
 
-export function StepForm({ number, initial, state }: Props) {
+export function StepForm({ number, initial, state, assets = [] }: Props) {
   const [data, setData] = useState<Record<string, unknown>>(initial || {});
+  const [uploadedAssets, setUploadedAssets] = useState(assets);
   const [saveState, setSaveState] = useState(state);
   const [message, setMessage] = useState("");
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [uploading, setUploading] = useState(false);
   const body = useMemo(() => JSON.stringify({ data, state: saveState }), [data, saveState]);
   useEffect(() => {
     const t = setTimeout(() => {
@@ -146,6 +155,30 @@ export function StepForm({ number, initial, state }: Props) {
     return () => clearTimeout(t);
   }, [body, data, initial, number, saveState, state]);
   function update(key: string, value: unknown) { setData((d) => ({ ...d, [key]: value })); setSaveState((s) => s === "complete" ? "complete" : "draft"); }
+  async function uploadFiles(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUploadMessage("");
+    setUploading(true);
+    const form = event.currentTarget;
+    try {
+      const res = await fetch("/api/portal/assets/", {
+        method: "POST",
+        headers: { Accept: "application/json", "X-Requested-With": "fetch" },
+        body: new FormData(form),
+      });
+      const result = await res.json().catch(() => null) as { ok?: boolean; message?: string; uploaded?: Asset[] } | null;
+      if (!res.ok || !result?.ok) throw new Error(result?.message || "Upload failed. Please try again.");
+      const uploaded = result.uploaded || [];
+      setUploadedAssets((current) => [...uploaded, ...current]);
+      setUploadMessage(`${uploaded.length} file${uploaded.length === 1 ? "" : "s"} uploaded.`);
+      form.reset();
+      update("photo_mode", "uploaded");
+    } catch (error) {
+      setUploadMessage(error instanceof Error ? error.message : "Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
   async function markComplete() { await fetch(`/api/portal/step/${number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data, state: "complete" }) }); setSaveState("complete"); setMessage("Marked complete"); window.location.href = "/portal/dashboard"; }
   async function saveClose() { await fetch(`/api/portal/step/${number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data, state: saveState === "complete" ? "complete" : "draft" }) }); window.location.href = "/portal/dashboard"; }
   return <div className="space-y-5">
@@ -153,7 +186,7 @@ export function StepForm({ number, initial, state }: Props) {
       const selected = str(data, "template_id") === t.id || str(data, "template_id") === t.name;
       return <label key={t.id} className={`block cursor-pointer rounded-2xl border bg-surface/40 p-4 transition hover:border-accent/60 ${selected ? "border-accent ring-2 ring-accent/20" : "border-line"}`}><span className="flex items-start gap-3"><input type="radio" name="template" className="mt-1" checked={selected} onChange={() => update("template_id", t.id)} /><span><span className="font-medium text-fg">{t.name}</span><span className="mt-1 block text-xs font-semibold uppercase tracking-[0.16em] text-accent-soft">{t.words}</span><span className="mt-2 block text-sm leading-relaxed text-fg-muted">{t.description}</span></span></span><MiniTemplate template={t} selected={selected} /></label>;
     })}</div><input className={cls} placeholder="Brand colours or use my logo colours" value={str(data,"brand_colours")} onChange={e=>update("brand_colours",e.target.value)} /></div>}
-    {number === 2 && <div className="space-y-4"><select className={cls} value={str(data,"photo_mode")} onChange={e=>update("photo_mode",e.target.value)}><option value="">Choose photo path</option><option value="uploaded">Upload my own photos</option><option value="stock">Use professional stock photos</option><option value="generated">Have images generated for my site</option></select><textarea className={cls} rows={4} placeholder="Photo notes, stock categories, or generated image requests" value={str(data,"photo_notes")} onChange={e=>update("photo_notes",e.target.value)} /> <form action="/api/portal/assets" method="post" encType="multipart/form-data" className="rounded-2xl border border-line p-4"><label className={label}>Upload images/logo</label><input type="file" name="files" accept="image/*,.heic,.heif" capture="environment" multiple className="text-sm text-fg-muted" /><select name="category" className={`${cls} mt-3`}>{categories.map(c=><option key={c}>{c}</option>)}</select><button className="mt-3 rounded-full border border-line px-4 py-2 text-sm text-fg">Upload files</button></form></div>}
+    {number === 2 && <div className="space-y-5"><select className={cls} value={str(data,"photo_mode")} onChange={e=>update("photo_mode",e.target.value)}><option value="">Choose photo path</option><option value="uploaded">Upload my own photos</option><option value="stock">Use professional stock photos</option><option value="generated">Have images generated for my site</option></select><textarea className={cls} rows={4} placeholder="Photo notes, stock categories, or generated image requests" value={str(data,"photo_notes")} onChange={e=>update("photo_notes",e.target.value)} /> <form action="/api/portal/assets/" method="post" encType="multipart/form-data" onSubmit={uploadFiles} className="rounded-2xl border border-line bg-surface/30 p-4"><label className={label}>Upload images/logo</label><p className="mb-3 text-sm text-fg-muted">Choose images from your device, then tap Upload files. JPG, PNG, HEIC, and logo files up to 15 MB each are accepted.</p><input type="file" name="files" accept="image/*,.heic,.heif" multiple className="block w-full rounded-xl border border-dashed border-line bg-ink/50 px-4 py-5 text-sm text-fg-muted file:mr-4 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink" /><select name="category" className={`${cls} mt-3`}>{categories.map(c=><option key={c}>{c}</option>)}</select><button type="submit" disabled={uploading} className="mt-3 rounded-full border border-line px-4 py-2 text-sm font-semibold text-fg transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-60">{uploading ? "Uploading…" : "Upload files"}</button>{uploadMessage && <p className="mt-3 text-sm text-accent-soft" role="status">{uploadMessage}</p>}</form>{uploadedAssets.length > 0 && <div className="rounded-2xl border border-line bg-surface/30 p-4"><p className={label}>Uploaded files</p><ul className="space-y-2 text-sm text-fg-muted">{uploadedAssets.map((asset) => <li key={asset.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-ink/40 px-3 py-2"><span>{asset.original_filename}</span><span className="text-xs uppercase tracking-[0.14em] text-fg-subtle">{asset.category} · {formatBytes(asset.bytes)}</span></li>)}</ul></div>}</div>}
     {number === 3 && <div className="grid gap-4"><select className={cls} value={str(data,"domain_mode")} onChange={e=>update("domain_mode",e.target.value)}><option value="">Choose domain path</option><option value="register_for_me">Register one for me</option><option value="already_own">I already have one</option><option value="undecided">Not sure yet</option></select><input className={cls} placeholder="Domain choice 1 or existing domain" value={str(data,"domain_1")} onChange={e=>update("domain_1",e.target.value)} /><input className={cls} placeholder="Domain choice 2" value={str(data,"domain_2")} onChange={e=>update("domain_2",e.target.value)} /><input className={cls} placeholder="Domain choice 3" value={str(data,"domain_3")} onChange={e=>update("domain_3",e.target.value)} /><input className={cls} placeholder="Current registrar" value={str(data,"registrar")} onChange={e=>update("registrar",e.target.value)} /><label className="text-sm text-fg-muted"><input type="checkbox" checked={Boolean(data.has_domain_email)} onChange={e=>update("has_domain_email",e.target.checked)} /> I receive email at this domain</label><select className={cls} value={str(data,"cira_legal_type")} onChange={e=>update("cira_legal_type",e.target.value)}><option value="">CIRA legal type</option><option>Canadian Citizen</option><option>Permanent Resident</option><option>Canadian Corporation</option><option>Canadian Partnership</option></select></div>}
     {number === 4 && <div className="grid gap-4 sm:grid-cols-2">{["legal_name","trade_name","phone","email","address","service_areas","years_in_business","licences","certifications","social_links"].map(k=><input key={k} className={cls} placeholder={k.replaceAll("_"," ")} value={str(data,k)} onChange={e=>update(k,e.target.value)} />)}</div>}
     {number === 5 && <div className="space-y-4">{["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map(day=><div key={day} className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr]"><span className="text-sm text-fg-muted">{day}</span><input className={cls} placeholder="Open" value={str(data,`${day}_open`)} onChange={e=>update(`${day}_open`,e.target.value)} /><input className={cls} placeholder="Close / closed" value={str(data,`${day}_close`)} onChange={e=>update(`${day}_close`,e.target.value)} /></div>)}<label className="block text-sm text-fg-muted"><input type="checkbox" checked={Boolean(data.emergency_24_7)} onChange={e=>update("emergency_24_7",e.target.checked)} /> 24/7 emergency line</label><label className="block text-sm text-fg-muted"><input type="checkbox" checked={Boolean(data.by_appointment)} onChange={e=>update("by_appointment",e.target.checked)} /> By appointment only</label><textarea className={cls} rows={3} placeholder="Seasonal hours or notes" value={str(data,"hours_note")} onChange={e=>update("hours_note",e.target.value)} /></div>}
