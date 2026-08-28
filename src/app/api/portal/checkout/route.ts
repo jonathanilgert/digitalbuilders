@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const session = await s.checkout.sessions.create({
     mode: "payment",
     integration_identifier: "digitalbuilders_dkqzjwna",
-    success_url: `${origin}/portal?sent=1`,
+    success_url: `${origin}/portal?checkout=success`,
     cancel_url: `${origin}/portal/start`,
     customer_email: String(form.get("email") || ""),
     metadata: {
