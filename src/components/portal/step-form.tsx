@@ -179,7 +179,17 @@ export function StepForm({ number, initial, state, assets = [] }: Props) {
       setUploading(false);
     }
   }
-  async function markComplete() { await fetch(`/api/portal/step/${number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data, state: "complete" }) }); setSaveState("complete"); setMessage("Marked complete"); window.location.href = "/portal/dashboard"; }
+  async function markComplete() {
+    const res = await fetch(`/api/portal/step/${number}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data, state: "complete" }),
+    });
+    const result = await res.json().catch(() => null) as { complete?: boolean } | null;
+    setSaveState("complete");
+    setMessage("Marked complete");
+    window.location.href = result?.complete ? "/portal/submitted" : "/portal/dashboard";
+  }
   async function saveClose() { await fetch(`/api/portal/step/${number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data, state: saveState === "complete" ? "complete" : "draft" }) }); window.location.href = "/portal/dashboard"; }
   return <div className="space-y-5">
     {number === 1 && <div className="space-y-5"><div className="grid gap-4 lg:grid-cols-2">{templates.map((t) => {
