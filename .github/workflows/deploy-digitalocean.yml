@@ -189,3 +189,10 @@ jobs:
             grep -qi "Digital Builders" /tmp/db-page.html
           done
           curl --fail --silent --show-error --location --max-time 20 "https://digitalbuilders.ca/app/" >/dev/null
+          headers="$(mktemp)"
+          curl --fail --silent --show-error --max-time 20 -D "$headers" -o /tmp/db-resend.html \
+            -X POST "https://digitalbuilders.ca/api/portal/resend/" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data "email=smoke%2Bportal%40digitalbuilders.ca"
+          grep -qi '^location: https://digitalbuilders.ca/portal?sent=1' "$headers"
+          ! grep -qi 'localhost:8795' "$headers"

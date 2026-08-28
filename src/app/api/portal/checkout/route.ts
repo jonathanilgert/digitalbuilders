@@ -3,6 +3,7 @@ import type { Plan } from "@/lib/portal/types";
 import { plans } from "@/lib/portal/types";
 import { resolveCoupon } from "@/lib/portal/store";
 import { stripe } from "@/lib/portal/stripe";
+import { publicOrigin } from "@/lib/portal/urls";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
   if (!resolved.ok) return NextResponse.json({ error: resolved.message }, { status: 400 });
   const s = stripe();
   if (!s) return NextResponse.json({ error: "Stripe is not configured yet. Add STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET before enabling paid portal access." }, { status: 503 });
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
+  const origin = publicOrigin(req);
   const session = await s.checkout.sessions.create({
     mode: "payment",
     integration_identifier: "digitalbuilders_dkqzjwna",

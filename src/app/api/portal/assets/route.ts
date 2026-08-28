@@ -4,6 +4,7 @@ import path from "node:path";
 import { requireClient } from "@/lib/portal/auth";
 import { assetRoot, saveAsset, uid } from "@/lib/portal/store";
 import type { AssetCategory } from "@/lib/portal/types";
+import { publicUrl } from "@/lib/portal/urls";
 
 export async function POST(req: Request) {
   const client = await requireClient();
@@ -19,5 +20,5 @@ export async function POST(req: Request) {
     await writeFile(out, bytes);
     await saveAsset({ id: uid("asset"), client_id: client.id, storage_key, original_filename: file.name, category, kind: "uploaded", bytes: bytes.length, created_at: new Date().toISOString() });
   }
-  return NextResponse.redirect(new URL("/portal/step/2", req.url), 303);
+  return NextResponse.redirect(publicUrl("/portal/step/2", req), 303);
 }

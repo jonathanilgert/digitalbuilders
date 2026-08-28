@@ -1,5 +1,6 @@
 import { site } from "@/lib/content";
 import type { Client } from "./types";
+import { publicOrigin } from "./urls";
 
 export async function sendMail(to: string, subject: string, text: string) {
   const key = process.env.RESEND_API_KEY;
@@ -17,7 +18,7 @@ export async function sendMail(to: string, subject: string, text: string) {
   return res.json();
 }
 export function portalLink(client: Client) {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || site.url;
+  const base = publicOrigin();
   return `${base}/portal/${client.magic_token}`;
 }
 export async function sendMagicLink(client: Client) {

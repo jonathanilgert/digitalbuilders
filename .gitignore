@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# local portal runtime data
+/.portal-data/
+
 # next.js
 /.next/
 /out/
