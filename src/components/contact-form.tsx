@@ -8,24 +8,26 @@ const inputCls =
   "w-full rounded-xl border border-line bg-ink/60 px-4 py-3 text-sm text-fg placeholder:text-fg-subtle outline-none transition-colors focus:border-accent/60 focus:ring-1 focus:ring-accent/40";
 
 export function ContactForm() {
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
-    const name = String(data.get("name") || "");
-    const email = String(data.get("email") || "");
-    const projectType = String(data.get("projectType") || "");
-    const message = String(data.get("message") || "");
+    setStatus("sending");
 
-    const subject = encodeURIComponent(`New enquiry from ${name || "website"}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nProject type: ${projectType}\n\n${message}`,
-    );
-    // No backend yet — open the visitor's mail client pre-filled to our inbox.
-    window.location.href = `mailto:${site.inquiriesEmail}?subject=${subject}&body=${body}`;
-    setSent(true);
+    try {
+      const response = await fetch("/api/contact/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(data)),
+      });
+      if (!response.ok) throw new Error("Contact request failed");
+      form.reset();
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
   }
 
   return (
@@ -35,7 +37,7 @@ export function ContactForm() {
           <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-fg-muted">
             Name
           </label>
-          <input id="name" name="name" required placeholder="Your name" className={inputCls} />
+          <input id="name" name="name" required maxLength={120} placeholder="Your name" className={inputCls} />
         </div>
         <div>
           <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-fg-muted">
@@ -46,6 +48,7 @@ export function ContactForm() {
             name="email"
             type="email"
             required
+            maxLength={254}
             placeholder="you@company.com"
             className={inputCls}
           />
@@ -77,30 +80,43 @@ export function ContactForm() {
           id="message"
           name="message"
           required
+          maxLength={5000}
           rows={5}
           placeholder="A few lines about your business, goals, and timeline…"
           className={inputCls}
         />
       </div>
 
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="website">Website</label>
+        <input id="website" name="website" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <button
         type="submit"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-ink transition-all hover:bg-accent-soft hover:shadow-[0_12px_40px_-12px_rgba(29,78,216,0.7)] sm:w-auto"
+        disabled={status === "sending"}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-ink transition-all hover:bg-accent-soft hover:shadow-[0_12px_40px_-12px_rgba(29,78,216,0.7)] disabled:cursor-wait disabled:opacity-70 sm:w-auto"
       >
-        Send message
+        {status === "sending" ? "Sending…" : "Send message"}
         <ArrowRight />
       </button>
 
-      {sent && (
-        <p className="text-sm text-accent-soft">
-          Your email app should have opened with the message ready to send. If it didn&apos;t,
-          email us directly at{" "}
-          <a className="underline" href={`mailto:${site.inquiriesEmail}`}>
-            {site.inquiriesEmail}
-          </a>
-          .
-        </p>
-      )}
+      <div aria-live="polite">
+        {status === "sent" && (
+          <p className="text-sm text-accent-soft">
+            Thanks — your message has been sent. We&apos;ll get back to you shortly.
+          </p>
+        )}
+        {status === "error" && (
+          <p className="text-sm text-red-300">
+            We couldn&apos;t send your message just now. Please try again or email us at{" "}
+            <a className="underline" href={`mailto:${site.inquiriesEmail}`}>
+              {site.inquiriesEmail}
+            </a>
+            .
+          </p>
+        )}
+      </div>
     </form>
   );
 }

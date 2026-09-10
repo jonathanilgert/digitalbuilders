@@ -10,7 +10,7 @@ export const site = {
     "Digital Builders is a Calgary creative studio designing modern websites, online stores, and clean UX — built to feel intuitive, engaging, and ready to perform.",
   url: "https://digitalbuilders.ca",
   email: "hello@digitalbuilders.ca",
-  inquiriesEmail: "contact@digitalbuilders.ca",
+  inquiriesEmail: "hello@digitalbuilders.ca",
   bookingUrl: "/portal/start",
   linkedin: "https://www.linkedin.com/company/110243692",
   founded: 2024,

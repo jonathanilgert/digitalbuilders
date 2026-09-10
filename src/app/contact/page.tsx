@@ -50,12 +50,6 @@ export default function ContactPage() {
                 >
                   {site.email}
                 </a>
-                <a
-                  href={`mailto:${site.inquiriesEmail}`}
-                  className="block text-fg transition-colors hover:text-accent-soft"
-                >
-                  {site.inquiriesEmail}
-                </a>
               </div>
             </div>
 

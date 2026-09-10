@@ -102,8 +102,8 @@ jobs:
           Environment=PORT=8795
           Environment=NEXT_PUBLIC_SITE_URL=https://digitalbuilders.ca
           Environment=PORTAL_DATA_DIR=/var/www/digitalbuilders.ca/portal-data
-          Environment=PORTAL_EMAIL_FROM=contact@digitalbuilders.ca
-          Environment=PORTAL_NOTIFY_EMAIL=contact@digitalbuilders.ca
+          Environment=PORTAL_EMAIL_FROM=hello@digitalbuilders.ca
+          Environment=PORTAL_NOTIFY_EMAIL=hello@digitalbuilders.ca
           Environment="STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}"
           Environment="STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}"
           Environment="RESEND_API_KEY=${RESEND_API_KEY}"
@@ -152,6 +152,7 @@ jobs:
           location ^~ /api/portal/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /api/admin/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /api/domain/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /api/contact/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location = / {
             proxy_pass http://127.0.0.1:8795;
             proxy_set_header Host \$host;
@@ -196,3 +197,8 @@ jobs:
             --data "email=smoke%2Bportal%40digitalbuilders.ca"
           grep -qi '^location: https://digitalbuilders.ca/portal?sent=1' "$headers"
           ! grep -qi 'localhost:8795' "$headers"
+          curl --fail --silent --show-error --max-time 20 \
+            -X POST "https://digitalbuilders.ca/api/contact/" \
+            -H "Content-Type: application/json" \
+            --data '{"name":"Deploy smoke","email":"smoke@digitalbuilders.ca","message":"Proxy smoke test","website":"bot-trap"}' \
+            | grep -q '"ok":true'
