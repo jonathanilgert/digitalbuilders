@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/content";
 import { ArrowRight } from "@/components/ui";
 
@@ -9,6 +9,13 @@ const inputCls =
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const confirmationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (status === "sent") {
+      confirmationRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [status]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,6 +35,34 @@ export function ContactForm() {
     } catch {
       setStatus("error");
     }
+  }
+
+  if (status === "sent") {
+    return (
+      <div
+        ref={confirmationRef}
+        role="status"
+        aria-live="polite"
+        className="rounded-2xl border border-accent/50 bg-accent/10 p-6 sm:p-8"
+      >
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-xl font-bold text-ink">
+          ✓
+        </div>
+        <h3 className="mt-5 font-display text-2xl font-semibold text-fg">
+          Your message has been sent.
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+          Thank you for contacting Digital Builders. We&apos;ll get back to you shortly.
+        </p>
+        <button
+          type="button"
+          onClick={() => setStatus("idle")}
+          className="mt-6 text-sm font-semibold text-accent-soft underline underline-offset-4"
+        >
+          Send another message
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -101,22 +136,15 @@ export function ContactForm() {
         <ArrowRight />
       </button>
 
-      <div aria-live="polite">
-        {status === "sent" && (
-          <p className="text-sm text-accent-soft">
-            Thanks — your message has been sent. We&apos;ll get back to you shortly.
-          </p>
-        )}
-        {status === "error" && (
-          <p className="text-sm text-red-300">
-            We couldn&apos;t send your message just now. Please try again or email us at{" "}
-            <a className="underline" href={`mailto:${site.inquiriesEmail}`}>
-              {site.inquiriesEmail}
-            </a>
-            .
-          </p>
-        )}
-      </div>
+      {status === "error" && (
+        <p role="alert" className="text-sm text-red-300">
+          We couldn&apos;t send your message just now. Please try again or email us at{" "}
+          <a className="underline" href={`mailto:${site.inquiriesEmail}`}>
+            {site.inquiriesEmail}
+          </a>
+          .
+        </p>
+      )}
     </form>
   );
 }
