@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
@@ -48,7 +48,16 @@ jobs:
           cp -R .next/static .next/standalone/.next/static
           mkdir -p .next/standalone/public
           cp -R public/. .next/standalone/public/
+          mkdir -p .next/standalone/deployment
+          cp scripts/backup-portal-sqlite.mjs .next/standalone/deployment/
           test -f .next/standalone/public/work/penned/cover.png
+          test -f .next/standalone/deployment/backup-portal-sqlite.mjs
+          node -e 'const Database=require("./.next/standalone/node_modules/better-sqlite3"); const db=new Database(":memory:"); db.close()'
+          backup_test_dir="$(mktemp -d)"
+          node -e 'const Database=require("better-sqlite3"); const db=new Database(process.argv[1]); db.exec("CREATE TABLE portal_state(id INTEGER PRIMARY KEY, payload TEXT)"); db.prepare("INSERT INTO portal_state VALUES (1, ?)").run("{}"); db.close()' "$backup_test_dir/source.sqlite3"
+          node .next/standalone/deployment/backup-portal-sqlite.mjs "$backup_test_dir/source.sqlite3" "$backup_test_dir/backup.sqlite3"
+          test -s "$backup_test_dir/backup.sqlite3"
+          rm -rf "$backup_test_dir"
           tar -C .next/standalone -czf /tmp/digitalbuilders-next.tgz .
 
       - name: Configure SSH
@@ -73,20 +82,81 @@ jobs:
           RESEND_API_KEY: ${{ secrets.DB_RESEND_API_KEY }}
           PORTAL_ADMIN_TOKEN: ${{ secrets.DB_PORTAL_ADMIN_TOKEN }}
           PORTAL_CRON_TOKEN: ${{ secrets.DB_PORTAL_CRON_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.DB_OPENAI_API_KEY }}
+          VAPI_PRIVATE_KEY: ${{ secrets.DB_VAPI_PRIVATE_KEY }}
+          VAPI_WEBHOOK_SECRET: ${{ secrets.DB_VAPI_WEBHOOK_SECRET }}
+          VAPI_SERVER_CREDENTIAL_ID: ${{ secrets.DB_VAPI_SERVER_CREDENTIAL_ID }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.DB_TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.DB_TWILIO_AUTH_TOKEN }}
+          VOICE_AGENT_CHECKOUT_ENABLED: ${{ vars.VOICE_AGENT_CHECKOUT_ENABLED || 'false' }}
+          VOICE_PROVIDER_MUTATIONS_ENABLED: ${{ vars.VOICE_PROVIDER_MUTATIONS_ENABLED || 'false' }}
+          VOICE_AGENT_GO_LIVE_ENABLED: ${{ vars.VOICE_AGENT_GO_LIVE_ENABLED || 'false' }}
         run: |
           set -euo pipefail
           release="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_SHA::7}"
           remote_root="/var/www/digitalbuilders.ca"
-          ssh_cmd="ssh -i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes ${DEPLOY_USER}@${DEPLOY_HOST}"
-          scp -i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes /tmp/digitalbuilders-next.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/digitalbuilders-next.tgz"
+          ssh_opts="-i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=3"
+          ssh_cmd="ssh ${ssh_opts} ${DEPLOY_USER}@${DEPLOY_HOST}"
+          scp ${ssh_opts} /tmp/digitalbuilders-next.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/digitalbuilders-next.tgz"
           $ssh_cmd "set -euo pipefail
-            command -v node >/dev/null
-            mkdir -p ${remote_root}/releases/${release} ${remote_root}/portal-data
+            command -v /usr/bin/node >/dev/null
+            test \"\$(/usr/bin/node -p 'process.versions.modules')\" = 115 || { echo 'Production Node ABI must be 115 (Node 20)' >&2; exit 1; }
+            mkdir -p ${remote_root}/releases/${release} ${remote_root}/portal-data/voice-media ${remote_root}/portal-backups
             tar -xzf /tmp/digitalbuilders-next.tgz -C ${remote_root}/releases/${release}
             rm /tmp/digitalbuilders-next.tgz
+            cd ${remote_root}/releases/${release}
+            /usr/bin/node -e 'const Database=require(\"./node_modules/better-sqlite3\"); const db=new Database(\":memory:\"); db.close()'
+            cd /
+            case '${VOICE_AGENT_CHECKOUT_ENABLED}:${VOICE_PROVIDER_MUTATIONS_ENABLED}:${VOICE_AGENT_GO_LIVE_ENABLED}' in *[!a-z:]*|'') echo 'Feature flags must be true or false' >&2; exit 1;; esac
+            for flag in '${VOICE_AGENT_CHECKOUT_ENABLED}' '${VOICE_PROVIDER_MUTATIONS_ENABLED}' '${VOICE_AGENT_GO_LIVE_ENABLED}'; do
+              test \"\$flag\" = true || test \"\$flag\" = false || { echo \"Invalid feature flag: \$flag\" >&2; exit 1; }
+            done
+            if [ '${VOICE_AGENT_CHECKOUT_ENABLED}' = true ] || [ '${VOICE_AGENT_GO_LIVE_ENABLED}' = true ]; then
+              test -n '${STRIPE_SECRET_KEY}' || { echo 'Stripe is required when checkout/go-live is enabled' >&2; exit 1; }
+            fi
+            if [ '${VOICE_PROVIDER_MUTATIONS_ENABLED}' = true ] || [ '${VOICE_AGENT_GO_LIVE_ENABLED}' = true ]; then
+              test -n '${TWILIO_ACCOUNT_SID}' && test -n '${TWILIO_AUTH_TOKEN}' && test -n '${VAPI_PRIVATE_KEY}' && test -n '${VAPI_SERVER_CREDENTIAL_ID}' || { echo 'Twilio, Vapi, and Vapi server credential configuration is required when provider mutations/go-live is enabled' >&2; exit 1; }
+            fi
+            source_db=${remote_root}/portal-data/portal.sqlite3
+            backup_db=${remote_root}/portal-backups/portal-${release}.sqlite3
+            /usr/bin/node ${remote_root}/releases/${release}/deployment/backup-portal-sqlite.mjs \"\$source_db\" \"\$backup_db\"
+            test ! -f \"\$source_db\" || test -s \"\$backup_db\"
+            test ! -f ${remote_root}/portal-data/portal.json || cp -a ${remote_root}/portal-data/portal.json ${remote_root}/portal-backups/portal-${release}.json
             chown -R www-data:www-data ${remote_root}/releases/${release} ${remote_root}/portal-data
+            chmod 700 ${remote_root}/portal-data ${remote_root}/portal-data/voice-media
+            previous_target=\"\$(readlink -f ${remote_root}/current-next || true)\"
+            test -n \"\$previous_target\"
+            test -d \"\$previous_target\"
+            cutover_complete=false
+            rollback() {
+              status=\$?
+              trap - ERR
+              set +e
+              if [ \"\$cutover_complete\" = true ]; then
+                rollback_ok=true
+                ln -sfn \"\$previous_target\" ${remote_root}/current-next.rollback || rollback_ok=false
+                mv -Tf ${remote_root}/current-next.rollback ${remote_root}/current-next || rollback_ok=false
+                systemctl restart digitalbuilders-web.service || rollback_ok=false
+                recovered=false
+                for rollback_try in \$(seq 1 30); do
+                  if curl -fsS --max-time 2 http://127.0.0.1:8795/portal/ >/dev/null; then
+                    recovered=true
+                    break
+                  fi
+                  sleep 1
+                done
+                if [ \"\$rollback_ok\" = true ] && [ \"\$recovered\" = true ] && [ \"\$(readlink -f ${remote_root}/current-next)\" = \"\$previous_target\" ] && [ \"\$(systemctl is-active digitalbuilders-web.service)\" = active ]; then
+                  echo \"Deployment failed; verified rollback to \$previous_target\" >&2
+                else
+                  echo \"CRITICAL: deployment failed and rollback could not be verified\" >&2
+                fi
+              fi
+              exit \$status
+            }
+            trap rollback ERR
             ln -sfn ${remote_root}/releases/${release} ${remote_root}/current-next.new
             mv -Tf ${remote_root}/current-next.new ${remote_root}/current-next
+            cutover_complete=true
             cat > /etc/systemd/system/digitalbuilders-web.service <<'UNIT'
           [Unit]
           Description=Digital Builders Next.js website and portal
@@ -109,6 +179,15 @@ jobs:
           Environment="RESEND_API_KEY=${RESEND_API_KEY}"
           Environment="PORTAL_ADMIN_TOKEN=${PORTAL_ADMIN_TOKEN}"
           Environment="PORTAL_CRON_TOKEN=${PORTAL_CRON_TOKEN}"
+          Environment="OPENAI_API_KEY=${OPENAI_API_KEY}"
+          Environment="VAPI_PRIVATE_KEY=${VAPI_PRIVATE_KEY}"
+          Environment="VAPI_WEBHOOK_SECRET=${VAPI_WEBHOOK_SECRET}"
+          Environment="VAPI_SERVER_CREDENTIAL_ID=${VAPI_SERVER_CREDENTIAL_ID}"
+          Environment="TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}"
+          Environment="TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}"
+          Environment="VOICE_AGENT_CHECKOUT_ENABLED=${VOICE_AGENT_CHECKOUT_ENABLED}"
+          Environment="VOICE_PROVIDER_MUTATIONS_ENABLED=${VOICE_PROVIDER_MUTATIONS_ENABLED}"
+          Environment="VOICE_AGENT_GO_LIVE_ENABLED=${VOICE_AGENT_GO_LIVE_ENABLED}"
           ExecStart=/usr/bin/node /var/www/digitalbuilders.ca/current-next/server.js
           Restart=always
           RestartSec=5
@@ -127,9 +206,13 @@ jobs:
               if [ "\$i" = "30" ]; then
                 systemctl status digitalbuilders-web.service --no-pager || true
                 journalctl -u digitalbuilders-web.service -n 120 --no-pager || true
-                exit 1
+                false
               fi
             done
+            curl --fail --silent --show-error --max-time 5 \\
+              -o /tmp/digitalbuilders-db-health.json \\
+              http://127.0.0.1:8795/api/internal/voice/health/
+            grep -q '\"ok\":true' /tmp/digitalbuilders-db-health.json
             cat > /etc/nginx/snippets/digitalbuilders-portal-proxy.conf <<'NGINX'
           location ^~ /portal/ {
             proxy_pass http://127.0.0.1:8795;
@@ -151,6 +234,10 @@ jobs:
           location = /admin { return 301 /admin/; }
           location ^~ /api/portal/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /api/admin/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location = /api/internal/voice/health { deny all; }
+          location = /api/internal/voice/health/ { allow 127.0.0.1; allow ::1; deny all; proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /api/internal/voice/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /api/vapi/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /api/domain/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /api/contact/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location = / {
@@ -168,6 +255,7 @@ jobs:
           location ^~ /work/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /contact/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /intake/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
+          location ^~ /voice-agent/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           location ^~ /preview/ { proxy_pass http://127.0.0.1:8795; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
           NGINX
             python3 - <<'PY'
@@ -180,25 +268,19 @@ jobs:
           PY
             nginx -t
             systemctl reload nginx
+            for live_path in / /about/ /services/ /work/ /contact/ /voice-agent/ /portal/start/ /portal/voice/start/ /portal/; do
+              curl --fail --silent --show-error --location --max-time 20 \\
+                -o /tmp/digitalbuilders-live-smoke.html \"https://digitalbuilders.ca\$live_path\"
+              grep -qi 'Digital Builders' /tmp/digitalbuilders-live-smoke.html
+            done
+            curl --fail --silent --show-error --location --max-time 20 https://digitalbuilders.ca/app/ >/dev/null
+            health_public_status=\$(curl --silent --show-error --max-time 20 -o /tmp/digitalbuilders-public-health.html -w '%{http_code}' https://digitalbuilders.ca/api/internal/voice/health/)
+            test \"\$health_public_status\" = 403
+            curl --fail --silent --show-error --max-time 20 \\
+              -o /tmp/digitalbuilders-contact-smoke.json \\
+              -X POST https://digitalbuilders.ca/api/contact/ \\
+              -H 'Content-Type: application/json' \\
+              --data '{\"name\":\"Deploy smoke\",\"email\":\"smoke@digitalbuilders.ca\",\"message\":\"Proxy smoke test\",\"website\":\"bot-trap\"}'
+            grep -q '\"ok\":true' /tmp/digitalbuilders-contact-smoke.json
+            trap - ERR
             readlink -f ${remote_root}/current-next"
-
-      - name: Smoke test live site and portal
-        run: |
-          set -euo pipefail
-          for path in / /about/ /services/ /work/ /contact/ /portal/start/ /portal/; do
-            curl --fail --silent --show-error --location --max-time 20 "https://digitalbuilders.ca${path}" > /tmp/db-page.html
-            grep -qi "Digital Builders" /tmp/db-page.html
-          done
-          curl --fail --silent --show-error --location --max-time 20 "https://digitalbuilders.ca/app/" >/dev/null
-          headers="$(mktemp)"
-          curl --fail --silent --show-error --max-time 20 -D "$headers" -o /tmp/db-resend.html \
-            -X POST "https://digitalbuilders.ca/api/portal/resend/" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            --data "email=smoke%2Bportal%40digitalbuilders.ca"
-          grep -qi '^location: https://digitalbuilders.ca/portal?sent=1' "$headers"
-          ! grep -qi 'localhost:8795' "$headers"
-          curl --fail --silent --show-error --max-time 20 \
-            -X POST "https://digitalbuilders.ca/api/contact/" \
-            -H "Content-Type: application/json" \
-            --data '{"name":"Deploy smoke","email":"smoke@digitalbuilders.ca","message":"Proxy smoke test","website":"bot-trap"}' \
-            | grep -q '"ok":true'

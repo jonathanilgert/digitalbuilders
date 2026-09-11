@@ -27,7 +27,7 @@ export function portalLink(client: Client) {
   return `${base}/portal/${client.magic_token}`;
 }
 export async function sendMagicLink(client: Client) {
-  return sendMail(client.email, "Your Digital Builders portal link", `Hi ${client.contact_name || "there"},\n\nYour website portal is ready. Open your magic link here:\n${portalLink(client)}\n\nNo password is needed.\n\nDigital Builders`);
+  return sendMail(client.email, "Your Digital Builders portal link", `Hi ${client.contact_name || "there"},\n\nYour Digital Builders portal is ready. Open your magic link here:\n${portalLink(client)}\n\nNo password is needed.\n\nDigital Builders`);
 }
 export async function notifyReady(client: Client) {
   const base = publicOrigin();

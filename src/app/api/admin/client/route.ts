@@ -1,16 +1,26 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/portal/auth";
-import { rotateMagicLink, setStatus } from "@/lib/portal/store";
+import { rotateMagicLink, setStatus, setVoiceStatus } from "@/lib/portal/store";
 import { sendMagicLink } from "@/lib/portal/mail";
-import type { ClientStatus } from "@/lib/portal/types";
+import { AdminActionValidationError, parseAdminClientAction } from "@/lib/portal/admin-actions";
 import { publicUrl } from "@/lib/portal/urls";
+import { runVoiceProvisioning } from "@/lib/voice/provision-service";
 
 export async function POST(req: Request) {
   await requireAdmin();
-  const form = await req.formData();
-  const action = String(form.get("action") || "");
-  const clientId = String(form.get("client_id") || "");
-  if (action === "status") await setStatus(clientId, String(form.get("status")) as ClientStatus, String(form.get("note") || ""));
-  if (action === "resend") { const email = String(form.get("email") || ""); const c = await rotateMagicLink(email); if (c) await sendMagicLink(c); }
+  let payload;
+  try {
+    payload = parseAdminClientAction(await req.formData());
+  } catch (error) {
+    if (error instanceof AdminActionValidationError) return NextResponse.json({ error: error.message }, { status: 400 });
+    throw error;
+  }
+  if (payload.action === "status") await setStatus(payload.clientId, payload.status, payload.note);
+  else if (payload.action === "voice_status") await setVoiceStatus(payload.voiceAgentId, payload.status);
+  else if (payload.action === "voice_provision") await runVoiceProvisioning(payload.voiceAgentId);
+  else {
+    const client = await rotateMagicLink(payload.email);
+    if (client) await sendMagicLink(client);
+  }
   return NextResponse.redirect(publicUrl("/admin", req), 303);
 }
