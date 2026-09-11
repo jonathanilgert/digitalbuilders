@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Plan } from "@/lib/portal/types";
 import { plans } from "@/lib/portal/types";
-import { resolveCoupon } from "@/lib/portal/store";
+import { resolveCoupon, websiteClientForEmail } from "@/lib/portal/store";
 import { stripe } from "@/lib/portal/stripe";
 import { publicOrigin } from "@/lib/portal/urls";
 
@@ -9,6 +9,8 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const plan = String(form.get("plan") || "1page") as Plan;
   if (!plans[plan]) return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  const email = String(form.get("email") || "").trim().toLowerCase();
+  if (!email || await websiteClientForEmail(email)) return NextResponse.json({ error: "This email already has a website purchase. Contact us if you need another site." }, { status: 409 });
   const resolved = await resolveCoupon(String(form.get("coupon") || ""), plan);
   if (!resolved.ok) return NextResponse.json({ error: resolved.message }, { status: 400 });
   const s = stripe();
@@ -19,8 +21,10 @@ export async function POST(req: Request) {
     integration_identifier: "digitalbuilders_dkqzjwna",
     success_url: `${origin}/portal?checkout=success`,
     cancel_url: `${origin}/portal/start`,
-    customer_email: String(form.get("email") || ""),
+    customer_email: email,
     metadata: {
+      product_family: "website",
+      expected_amount: String(resolved.amount),
       plan,
       source: resolved.source,
       coupon_code: "coupon" in resolved ? resolved.coupon || "" : "",

@@ -13,7 +13,6 @@ import {
   carePlan,
   ownershipPromise,
   pricingNotes,
-  voiceAI,
   projects,
 } from "@/lib/content";
 
@@ -250,25 +249,30 @@ export default function Home() {
 
       {/* ---------------- VoiceAI ---------------- */}
       <Section id="voiceai" className="border-y border-line bg-navy/40">
-        <SectionHeading
-          eyebrow="VoiceAI"
-          title="Never miss a customer — even when you're off the clock."
-          intro="Add AI-powered voice and messaging to your business so every call and chat gets answered, qualified, and followed up."
-          align="center"
-        />
-        <div className="mt-14 grid gap-5 md:grid-cols-2">
-          {voiceAI.map((v, i) => {
-            const Icon = i === 0 ? icons.phoneCall : icons.chat;
-            return (
-              <div key={v.title} className="card card-hover p-8">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-ink/60 text-accent">
-                  <Icon className="[&_svg]:h-6 [&_svg]:w-6" />
-                </span>
-                <h3 className="mt-5 font-display text-lg font-semibold text-fg">{v.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-fg-muted">{v.body}</p>
-              </div>
-            );
-          })}
+        <div className="card grid items-center gap-8 overflow-hidden p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:p-12">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-4">
+              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-line bg-ink/60 text-accent">
+                <icons.phoneCall className="[&_svg]:h-6 [&_svg]:w-6" />
+              </span>
+              <Eyebrow>AI voice agents</Eyebrow>
+            </div>
+            <h2 className="mt-6 font-display text-3xl font-semibold leading-tight tracking-tight text-fg sm:text-4xl">
+              Never miss a customer — even when you’re off the clock.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-fg-muted sm:text-lg">
+              A trained AI front desk answers questions, takes details, books work, and sends the
+              lead to your phone. Plans start at $99/month, with your own local number and no
+              contract.
+            </p>
+          </div>
+          <div className="flex flex-col items-start gap-3 lg:items-end">
+            <Button href="/voice-agent">
+              See plans and pricing
+              <ArrowRight />
+            </Button>
+            <span className="text-sm text-fg-subtle">From $99/month · All prices in CAD</span>
+          </div>
         </div>
       </Section>
 

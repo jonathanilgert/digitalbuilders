@@ -1,0 +1,3 @@
+import { NextResponse } from "next/server";
+import { resolveVoiceSetupCoupon } from "@/lib/portal/store";
+export async function POST(req: Request) { if (process.env.VOICE_AGENT_CHECKOUT_ENABLED !== "true") return NextResponse.json({ error: "Online voice-agent checkout is not open yet." }, { status: 503 }); const body = await req.json(); const result = await resolveVoiceSetupCoupon(String(body.coupon || "")); if (!result.ok) return NextResponse.json({ error: result.message }, { status: 400 }); return NextResponse.json({ amount: result.amount, coupon: "coupon" in result ? result.coupon : undefined }); }

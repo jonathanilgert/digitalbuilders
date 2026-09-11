@@ -22,7 +22,7 @@ export default async function DashboardPage() {
             <h1 className="mt-5 font-display text-4xl font-semibold text-fg">No technical knowledge needed.</h1>
             <p className="mt-3 max-w-2xl text-fg-muted">You answer the questions, we build the site. Six steps, about 30 minutes total. Do them in any order, save as you go, come back any time.</p>
           </div>
-          <div className="rounded-2xl border border-line bg-surface/60 px-5 py-4 text-sm text-fg-muted"><strong className="text-fg">{done} of 6</strong> complete<br />Status: {client.status.replaceAll("_", " ")}</div>
+          <div className="rounded-2xl border border-line bg-surface/60 px-5 py-4 text-sm text-fg-muted"><strong className="text-fg">{done} of 6</strong> complete<br />Status: {(client.status || "paid").replaceAll("_", " ")}</div>
         </div>
         <div className="mt-8 h-3 overflow-hidden rounded-full bg-surface-2"><div className="h-full bg-accent" style={{ width: `${(done / 6) * 100}%` }} /></div>
         {submitted && <div className="card mt-10 border-accent/40 bg-accent/10 p-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-soft">Submitted</p><h2 className="mt-3 font-display text-2xl font-semibold text-fg">Your details have been submitted.</h2><p className="mt-2 max-w-3xl text-sm leading-relaxed text-fg-muted">Digital Builders will begin building your website from the information below and touch base once it is ready to preview. You can still reopen a step if you notice something that needs updating.</p><div className="mt-5"><Button href="/portal/submitted" variant="secondary">View next steps</Button></div></div>}

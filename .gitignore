@@ -16,6 +16,11 @@
 # local portal runtime data
 /.portal-data/
 
+# local agent planning and archived working copies (not release artifacts)
+/.hermes/
+/.hermes-crm-progress.md
+/.archive/
+
 # next.js
 /.next/
 /out/

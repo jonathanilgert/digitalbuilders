@@ -8,13 +8,14 @@ import { projects } from "@/lib/content";
 
 const Check = icons.check;
 const withCase = projects.filter((p) => p.caseStudy && p.slug);
+type CaseStudyPageProps = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
   return withCase.map((p) => ({ slug: p.slug as string }));
 }
 
 export async function generateMetadata(
-  props: PageProps<"/work/[slug]">,
+  props: CaseStudyPageProps,
 ): Promise<Metadata> {
   const { slug } = await props.params;
   const project = withCase.find((p) => p.slug === slug);
@@ -25,7 +26,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function CaseStudyPage(props: PageProps<"/work/[slug]">) {
+export default async function CaseStudyPage(props: CaseStudyPageProps) {
   const { slug } = await props.params;
   const project = withCase.find((p) => p.slug === slug);
   if (!project || !project.caseStudy) notFound();
