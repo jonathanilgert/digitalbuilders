@@ -94,8 +94,9 @@ jobs:
           set -euo pipefail
           release="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_SHA::7}"
           remote_root="/var/www/digitalbuilders.ca"
-          ssh_cmd="ssh -i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes ${DEPLOY_USER}@${DEPLOY_HOST}"
-          scp -i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes /tmp/digitalbuilders-next.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/digitalbuilders-next.tgz"
+          ssh_opts="-i ~/.ssh/digitalbuilders_deploy -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=3"
+          ssh_cmd="ssh ${ssh_opts} ${DEPLOY_USER}@${DEPLOY_HOST}"
+          scp ${ssh_opts} /tmp/digitalbuilders-next.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/digitalbuilders-next.tgz"
           $ssh_cmd "set -euo pipefail
             command -v node >/dev/null
             mkdir -p ${remote_root}/releases/${release} ${remote_root}/portal-data/voice-media ${remote_root}/portal-backups
